@@ -13,14 +13,14 @@ public class PlayerCombat : MonoBehaviour
     public LayerMask enemyLayer;
 
     [Header("Parry Settings")]
-    public float parryWindow = 0.3f;       // Time window for a perfect parry
+    public float parryWindow = 0.3f;
     public float blockCooldown = 0.2f;
-    public float parryCounterDamage = 50f; // Bonus damage after successful parry
+    public float parryCounterDamage = 50f;
 
     [Header("Spear Settings")]
     public float spearThrowForce = 20f;
-    public GameObject spearPrefab;         // Assign your spear prefab in Inspector
-    public Transform spearThrowPoint;      // Empty GameObject at player's hand
+    public GameObject spearPrefab;
+    public Transform spearThrowPoint;
 
     [Header("Audio")]
     public AudioClip attackSound;
@@ -28,55 +28,67 @@ public class PlayerCombat : MonoBehaviour
     public AudioClip parrySound;
     public AudioClip spearThrowSound;
 
-    // Internal state
+    // Components
     private Animator animator;
     private AudioSource audioSource;
     private PlayerHealth playerHealth;
 
+    // Timers
     private float attackTimer = 0f;
     private float blockTimer = 0f;
 
+    // States
     private bool isBlocking = false;
     private bool isParrying = false;
     private bool hasSpear = false;
+    private bool isAttacking = false;
 
-    // Animation parameter names — must match your Animator Controller
-    private const string ANIM_ATTACK   = "Attack";
-    private const string ANIM_BLOCK    = "IsBlocking";
-    private const string ANIM_PARRY    = "Parry";
-    private const string ANIM_THROW    = "ThrowSpear";
+    // Animation parameter names
+    private const string ANIM_ATTACK = "Attack";
+    private const string ANIM_BLOCK = "IsBlocking";
+    private const string ANIM_PARRY = "Parry";
+    private const string ANIM_THROW = "ThrowSpear";
     private const string ANIM_HAS_SPEAR = "HasSpear";
 
     void Awake()
     {
-        animator     = GetComponent<Animator>();
-        audioSource  = GetComponent<AudioSource>();
+        animator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
         playerHealth = GetComponent<PlayerHealth>();
     }
 
     void Update()
     {
-        // Count down cooldown timers
-        if (attackTimer > 0f) attackTimer -= Time.deltaTime;
-        if (blockTimer  > 0f) blockTimer  -= Time.deltaTime;
+        // Cooldowns
+        if (attackTimer > 0f)
+            attackTimer -= Time.deltaTime;
+
+        if (blockTimer > 0f)
+            blockTimer -= Time.deltaTime;
 
         HandleAttack();
         HandleBlock();
         HandleSpear();
     }
 
-    // ─────────────────────────────────────────────
-    //  ATTACK  (Left Mouse Button)
-    // ─────────────────────────────────────────────
+    // =========================================================
+    // ATTACK
+    // =========================================================
+
     void HandleAttack()
     {
         if (Input.GetMouseButtonDown(0) && attackTimer <= 0f && !isBlocking)
         {
             attackTimer = attackCooldown;
+            isAttacking = true;
+
             animator?.SetTrigger(ANIM_ATTACK);
             PlaySound(attackSound);
 
-            // Detect enemies in attack range in front of player
+            // Unlock movement slightly before cooldown ends
+            Invoke(nameof(EndAttack), 0.35f);
+
+            // Detect enemies
             Collider[] hits = Physics.OverlapSphere(
                 transform.position + transform.forward * attackRange * 0.5f,
                 attackRange,
@@ -86,6 +98,7 @@ public class PlayerCombat : MonoBehaviour
             foreach (Collider hit in hits)
             {
                 EnemyHealth enemy = hit.GetComponent<EnemyHealth>();
+
                 if (enemy != null)
                 {
                     enemy.TakeDamage(attackDamage);
@@ -94,30 +107,39 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  BLOCK & PARRY  (Q key)
-    // ─────────────────────────────────────────────
+    void EndAttack()
+    {
+        isAttacking = false;
+    }
+
+    // =========================================================
+    // BLOCK & PARRY
+    // =========================================================
+
     void HandleBlock()
     {
-        // Start blocking
+        // Start block
         if (Input.GetKeyDown(KeyCode.Q) && blockTimer <= 0f)
         {
             isBlocking = true;
-            isParrying = true;                         // Parry window opens on key press
+            isParrying = true;
+
             animator?.SetBool(ANIM_BLOCK, true);
             PlaySound(blockSound);
 
-            // Parry window closes after parryWindow seconds
             Invoke(nameof(EndParryWindow), parryWindow);
         }
 
-        // Stop blocking when Q released
+        // Stop block
         if (Input.GetKeyUp(KeyCode.Q))
         {
             isBlocking = false;
             isParrying = false;
+
             blockTimer = blockCooldown;
+
             animator?.SetBool(ANIM_BLOCK, false);
+
             CancelInvoke(nameof(EndParryWindow));
         }
     }
@@ -127,46 +149,55 @@ public class PlayerCombat : MonoBehaviour
         isParrying = false;
     }
 
-    // ─────────────────────────────────────────────
-    //  Called by EnemyAttack when an enemy hits us
-    // ─────────────────────────────────────────────
+    // =========================================================
+    // BLOCK CHECK
+    // =========================================================
+
     /// <summary>
-    /// Returns true if the attack was blocked/parried (caller should skip damage).
+    /// Returns true if damage was blocked/parried.
     /// </summary>
     public bool TryBlock(float incomingDamage, bool isRangedAttack, Transform attacker)
     {
-        if (!isBlocking) return false;
+        if (!isBlocking)
+            return false;
 
+        // PERFECT PARRY
         if (isParrying && !isRangedAttack)
         {
-            // Perfect parry — zero damage, trigger counter
             animator?.SetTrigger(ANIM_PARRY);
             PlaySound(parrySound);
 
-            // Auto counter-attack the attacker
             EnemyHealth enemy = attacker?.GetComponent<EnemyHealth>();
-            enemy?.TakeDamage(parryCounterDamage);
+
+            if (enemy != null)
+            {
+                enemy.TakeDamage(parryCounterDamage);
+            }
 
             return true;
         }
 
+        // RANGED BLOCK
         if (isRangedAttack)
         {
-            // Ranged attacks are fully blockable — no damage
             PlaySound(blockSound);
             return true;
         }
 
-        // Regular block — reduce damage by 70%, player still takes some
+        // NORMAL BLOCK
         float reducedDamage = incomingDamage * 0.3f;
+
         playerHealth?.TakeDamage(reducedDamage);
+
         PlaySound(blockSound);
-        return true; // Handled — don't apply full damage
+
+        return true;
     }
 
-    // ─────────────────────────────────────────────
-    //  SPEAR  (F = pickup,  E = throw)
-    // ─────────────────────────────────────────────
+    // =========================================================
+    // SPEAR
+    // =========================================================
+
     void HandleSpear()
     {
         // Throw spear
@@ -176,11 +207,12 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    /// <summary>Called by SpearPickup trigger when player walks over a spear.</summary>
     public void PickUpSpear()
     {
         hasSpear = true;
+
         animator?.SetBool(ANIM_HAS_SPEAR, true);
+
         Debug.Log("Spear picked up! Press E to throw.");
     }
 
@@ -193,35 +225,55 @@ public class PlayerCombat : MonoBehaviour
         }
 
         hasSpear = false;
+
         animator?.SetBool(ANIM_HAS_SPEAR, false);
         animator?.SetTrigger(ANIM_THROW);
+
         PlaySound(spearThrowSound);
 
-        // Spawn and launch spear
-        GameObject spear = Instantiate(spearPrefab, spearThrowPoint.position, spearThrowPoint.rotation);
+        // Spawn spear
+        GameObject spear = Instantiate(
+            spearPrefab,
+            spearThrowPoint.position,
+            spearThrowPoint.rotation
+        );
+
         Rigidbody rb = spear.GetComponent<Rigidbody>();
+
         if (rb != null)
         {
             rb.linearVelocity = transform.forward * spearThrowForce;
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  Helpers
-    // ─────────────────────────────────────────────
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
     void PlaySound(AudioClip clip)
     {
         if (audioSource != null && clip != null)
+        {
             audioSource.PlayOneShot(clip);
+        }
     }
 
-    public bool IsBlocking => isBlocking;
-    public bool HasSpear   => hasSpear;
+    // =========================================================
+    // PUBLIC GETTERS
+    // =========================================================
 
-    // Draw attack range in Scene view for easier debugging
+    public bool IsBlocking => isBlocking;
+    public bool HasSpear => hasSpear;
+    public bool IsAttacking => isAttacking;
+
+    // =========================================================
+    // DEBUG GIZMOS
+    // =========================================================
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
+
         Gizmos.DrawWireSphere(
             transform.position + transform.forward * attackRange * 0.5f,
             attackRange

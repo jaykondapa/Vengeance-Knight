@@ -20,8 +20,12 @@ public class PlayerMovement : MonoBehaviour
     void OnEnable()
     {
         controls.Player.Enable();
-        controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        controls.Player.Move.canceled += ctx => moveInput = Vector2.zero;
+
+        controls.Player.Move.performed += ctx =>
+            moveInput = ctx.ReadValue<Vector2>();
+
+        controls.Player.Move.canceled += ctx =>
+            moveInput = Vector2.zero;
     }
 
     void OnDisable()
@@ -30,30 +34,64 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void FixedUpdate()
-{
-    // Movement direction
-    Vector3 move = new Vector3(-moveInput.y, 0, moveInput.x);
-
-    // Preserve vertical velocity (VERY IMPORTANT)
-    Vector3 velocity = rb.linearVelocity;
-    Vector3 targetVelocity = move * speed;
-
-    rb.linearVelocity = new Vector3(
-        targetVelocity.x,
-        velocity.y,
-        targetVelocity.z
-    );
-
-    // Rotation
-    if (move != Vector3.zero)
     {
-        transform.forward = move;
-    }
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
-    // Animation
-    if (animator != null)
-    {
-        animator.SetFloat("Speed", move.magnitude);
+        // Lock movement during most of attack animation
+        if (stateInfo.IsName("Attack") && stateInfo.normalizedTime < 0.75f)
+        {
+            rb.linearVelocity = new Vector3(
+                0,
+                rb.linearVelocity.y,
+                0
+            );
+
+            animator.SetFloat("Speed", 0f);
+
+            return;
+        }
+
+        // Movement direction
+        Vector3 move = new Vector3(
+            -moveInput.y,
+            0,
+            moveInput.x
+        );
+
+        // Smooth movement
+        Vector3 targetVelocity = move * speed;
+
+        rb.linearVelocity = Vector3.Lerp(
+            rb.linearVelocity,
+            new Vector3(
+                targetVelocity.x,
+                rb.linearVelocity.y,
+                targetVelocity.z
+            ),
+            10f * Time.fixedDeltaTime
+        );
+
+        // Better rotation using actual velocity
+        Vector3 horizontalVelocity = new Vector3(
+            rb.linearVelocity.x,
+            0,
+            rb.linearVelocity.z
+        );
+
+        if (horizontalVelocity.magnitude > 0.2f)
+        {
+            transform.forward = horizontalVelocity.normalized;
+        }
+
+        // Animation
+        float speedValue = move.magnitude;
+
+        // Prevent tiny float values causing sliding
+        if (speedValue < 0.1f)
+        {
+            speedValue = 0f;
+        }
+
+        animator.SetFloat("Speed", speedValue);
     }
-}
 }
