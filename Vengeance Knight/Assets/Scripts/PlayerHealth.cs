@@ -30,6 +30,9 @@ public class PlayerHealth : MonoBehaviour
     private const string ANIM_HIT  = "TakeHit";
     private const string ANIM_DEAD = "Die";
 
+    [Header("Game Over UI")]
+    public GameObject gameOverCanvas;
+
     void Awake()
     {
         animator = GetComponent<Animator>();
@@ -121,8 +124,10 @@ public class PlayerHealth : MonoBehaviour
 
     void GameOver()
     {
-        // Reload the first scene (full restart as per GDD)
-        SceneManager.LoadScene(0);
+        if (gameOverCanvas != null)
+            gameOverCanvas.SetActive(true);
+
+        Time.timeScale = 0f;
     }
 
     // ─────────────────────────────────────────────
