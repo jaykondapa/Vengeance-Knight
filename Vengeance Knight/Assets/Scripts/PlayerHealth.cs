@@ -2,10 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-/// <summary>
 /// Manages player HP, lives, death, respawn, and game-over logic.
 /// Attach to the Player GameObject.
-/// </summary>
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Health Settings")]
@@ -48,17 +46,18 @@ public class PlayerHealth : MonoBehaviour
         hudManager?.UpdateLives(currentLives);
     }
 
-    // ─────────────────────────────────────────────
-    //  PUBLIC API
-    // ─────────────────────────────────────────────
-
-    /// <summary>
     /// Deal damage to the player. Called by EnemyAttack or environmental hazards.
     /// Combat blocking is handled first in PlayerCombat.TryBlock().
-    /// </summary>
     public void TakeDamage(float amount)
     {
         if (isDead) return;
+
+        // 🔥 BLOCK CHECK (NEW)
+        PlayerCombat pc = GetComponent<PlayerCombat>();
+        if (pc != null && pc.IsBlocking)
+        {
+            return; // 100% damage blocked
+        }
 
         currentHealth -= amount;
         currentHealth  = Mathf.Clamp(currentHealth, 0f, maxHealth);
@@ -70,22 +69,13 @@ public class PlayerHealth : MonoBehaviour
             Die();
     }
 
-    /// <summary>Heal the player (e.g., boss reward potions).</summary>
-    public void Heal(float amount)
-    {
-        currentHealth = Mathf.Clamp(currentHealth + amount, 0f, maxHealth);
-        UpdateHealthUI();
-    }
-
     /// <summary>Save the current position as respawn point (call when area is cleared).</summary>
     public void SetRespawnPoint(Vector3 position)
     {
         respawnPosition = position;
     }
 
-    // ─────────────────────────────────────────────
     //  DEATH & RESPAWN
-    // ─────────────────────────────────────────────
 
     void Die()
     {
@@ -130,9 +120,7 @@ public class PlayerHealth : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    // ─────────────────────────────────────────────
     //  UI
-    // ─────────────────────────────────────────────
 
     void UpdateHealthUI()
     {
@@ -140,9 +128,7 @@ public class PlayerHealth : MonoBehaviour
             healthBar.value = currentHealth / maxHealth;
     }
 
-    // ─────────────────────────────────────────────
     //  Getters (used by HUD and other scripts)
-    // ─────────────────────────────────────────────
     public float CurrentHealth   => currentHealth;
     public float MaxHealth       => maxHealth;
     public int   CurrentLives    => currentLives;

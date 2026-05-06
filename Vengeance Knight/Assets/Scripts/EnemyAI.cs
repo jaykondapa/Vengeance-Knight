@@ -2,181 +2,206 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
-    [Header("Patrol Settings")]
-    public float patrolDistance = 5f;
+    public Transform player;
+    public Animator animator;
+
+    [Header("Movement")]
+    public bool canPatrol = true;
+    public float patrolRadius = 5f;
     public float patrolSpeed = 2f;
-
-    [Header("Detection Settings")]
-    public float detectionRange = 8f;
-    public float attackRange = 1.5f;
-
-    [Header("Attack Settings")]
-    public float attackDamage = 10f;
-    public float attackCooldown = 1.5f;
-
-    [Header("Chase Settings")]
     public float chaseSpeed = 4f;
+    public float rotationSpeed = 10f;
 
-    private Transform player;
-    private PlayerHealth playerHealth;
-    private Animator animator;
-    private EnemyHealth enemyHealth;
-    private Rigidbody rb;
+    [Header("Combat")]
+    public float detectionRange = 6f;
+    public float attackRange = 2f;
+    public float attackCooldown = 1.5f;
+    public float attackDamage = 15f;
 
-    private Vector3 startPosition;
     private Vector3 patrolTarget;
-    private float attackTimer = 0f;
+    private float attackTimer;
+    private bool isAttacking = false;
 
-    private enum EnemyState { Patrol, Chase, Attack, Dead }
-    private EnemyState currentState = EnemyState.Patrol;
-
-    private bool movingRight = true;
-
-    private bool hasSpeedParam = false;
-    private bool hasAttackParam = false;
+    private EnemyHealth enemyHealth;
+    Rigidbody rb;
 
     void Start()
     {
-        startPosition = transform.position;
-        patrolTarget  = startPosition + Vector3.right * patrolDistance;
-
-        animator    = GetComponent<Animator>();
         enemyHealth = GetComponent<EnemyHealth>();
-        rb          = GetComponent<Rigidbody>();
-
-        // Disable root motion to prevent sliding
-        if (animator != null)
-            animator.applyRootMotion = false;
-
-        if (animator != null && animator.runtimeAnimatorController != null)
-        {
-            foreach (AnimatorControllerParameter param in animator.parameters)
-            {
-                if (param.name == "Speed")  hasSpeedParam  = true;
-                if (param.name == "Attack") hasAttackParam = true;
-            }
-        }
-
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-        {
-            player       = playerObj.transform;
-            playerHealth = playerObj.GetComponent<PlayerHealth>();
-        }
+        rb = GetComponent<Rigidbody>();
+        SetNewPatrolPoint();
     }
 
     void Update()
     {
         if (enemyHealth != null && enemyHealth.IsDead)
+            return;
+
+        if (player == null)
+            return;
+
+        attackTimer -= Time.deltaTime;
+
+        float distance = Vector3.Distance(transform.position, player.position);
+
+        if (distance <= attackRange)
         {
-            currentState = EnemyState.Dead;
-            SetSpeed(0f);
-            if (rb != null) rb.linearVelocity = Vector3.zero;
+            HandleAttack();
+        }
+        else if (distance <= detectionRange)
+        {
+            ChasePlayer();
+        }
+        else if (canPatrol)
+        {
+            Patrol();
+        }
+        else
+        {
+            Idle();
+        }
+    }
+
+    // ATTACK LOGIC
+    void HandleAttack()
+    {
+        LookAtPlayer();
+
+         if (rb != null)
+        {
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+        }
+
+        if (attackTimer <= 0f && !isAttacking)
+        {
+            attackTimer = attackCooldown;
+            isAttacking = true;
+
+            animator.SetFloat("Speed", 0);
+            animator.SetTrigger("Attack");
+
+            Invoke(nameof(EndAttack), 1.0f);
+        }
+    }
+
+    void EndAttack()
+    {
+        isAttacking = false;
+        animator.ResetTrigger("Attack");
+
+    }
+
+    // CALLED BY ANIMATION EVENT
+    public void DealDamage()
+    {
+        if (player == null) return;
+
+        float dist = Vector3.Distance(transform.position, player.position);
+
+        if (dist <= attackRange)
+        {
+            PlayerHealth ph = player.GetComponent<PlayerHealth>();
+
+            if (ph != null)
+            {
+                ph.TakeDamage(Mathf.RoundToInt(attackDamage));
+                Debug.Log("Enemy HIT player");
+            }
+        }
+    }
+
+    // CHASE
+    void ChasePlayer()
+    {
+        if (isAttacking)
+        {
+            animator.SetFloat("Speed", 0f); //FORCE STOP
             return;
         }
 
-        if (attackTimer > 0f)
-            attackTimer -= Time.deltaTime;
+        Vector3 dir = (player.position - transform.position).normalized;
+        Move(dir, chaseSpeed);
 
-        if (player != null)
-        {
-            float dist = Vector3.Distance(transform.position, player.position);
-
-            if (dist <= attackRange)
-                currentState = EnemyState.Attack;
-            else if (dist <= detectionRange)
-                currentState = EnemyState.Chase;
-            else
-                currentState = EnemyState.Patrol;
-        }
-
-        switch (currentState)
-        {
-            case EnemyState.Patrol: Patrol(); break;
-            case EnemyState.Chase:  Chase();  break;
-            case EnemyState.Attack: Attack(); break;
-        }
+        animator.SetFloat("Speed", 1f);
     }
 
+    // PATROL
     void Patrol()
     {
-        SetSpeed(patrolSpeed);
-
-        Vector3 direction = (patrolTarget - transform.position).normalized;
-        if (rb != null)
-            rb.linearVelocity = new Vector3(direction.x * patrolSpeed, rb.linearVelocity.y, direction.z * patrolSpeed);
-
-        if (movingRight)
-            transform.rotation = Quaternion.LookRotation(Vector3.right);
-        else
-            transform.rotation = Quaternion.LookRotation(Vector3.left);
-
-        if (Vector3.Distance(transform.position, patrolTarget) < 0.5f)
+        if (isAttacking)
         {
-            movingRight = !movingRight;
-            patrolTarget = movingRight
-                ? startPosition + Vector3.right * patrolDistance
-                : startPosition - Vector3.right * patrolDistance;
+            animator.SetFloat("Speed", 0f); //FORCE STOP
+            return;
+        }
+
+        Vector3 dir = (patrolTarget - transform.position);
+        dir.y = 0;
+
+        if (dir.magnitude < 1f)
+        {
+            SetNewPatrolPoint();
+            return;
+        }
+
+        Move(dir.normalized, patrolSpeed);
+
+        animator.SetFloat("Speed", 0.5f);
+    }
+
+    void SetNewPatrolPoint()
+    {
+        Vector2 random = Random.insideUnitCircle * patrolRadius;
+        patrolTarget = new Vector3(
+            transform.position.x + random.x,
+            transform.position.y,
+            transform.position.z + random.y
+        );
+    }
+
+    // IDLE
+    void Idle()
+    {
+        if (isAttacking)
+        {
+            animator.SetFloat("Speed", 0f);
+            return;
+        }
+
+        animator.SetFloat("Speed", 0f);
+    }
+
+    // MOVEMENT
+    void Move(Vector3 direction, float speed)
+    {
+        //DO NOT MOVE WHILE ATTACKING
+        if (isAttacking) return;
+
+        transform.position += direction * speed * Time.deltaTime;
+
+        if (direction != Vector3.zero)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                targetRot,
+                rotationSpeed * Time.deltaTime
+            );
         }
     }
 
-    void Chase()
+    void LookAtPlayer()
     {
-        SetSpeed(chaseSpeed);
+        Vector3 dir = (player.position - transform.position);
+        dir.y = 0;
 
-        Vector3 direction = (player.position - transform.position).normalized;
-        if (rb != null)
-            rb.linearVelocity = new Vector3(direction.x * chaseSpeed, rb.linearVelocity.y, direction.z * chaseSpeed);
-
-        if (direction != Vector3.zero)
-            transform.rotation = Quaternion.LookRotation(direction);
-    }
-
-    void Attack()
-    {
-        SetSpeed(0f);
-
-        if (rb != null)
-            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
-
-        Vector3 direction = (player.position - transform.position).normalized;
-        if (direction != Vector3.zero)
-            transform.rotation = Quaternion.LookRotation(direction);
-
-        if (attackTimer <= 0f)
+        if (dir != Vector3.zero)
         {
-            attackTimer = attackCooldown;
-
-            if (hasAttackParam)
-                animator?.SetTrigger("Attack");
-
-            PlayerCombat playerCombat = player.GetComponent<PlayerCombat>();
-            bool wasBlocked = playerCombat != null &&
-                              playerCombat.TryBlock(attackDamage, false, transform);
-
-            if (!wasBlocked)
-                playerHealth?.TakeDamage(attackDamage);
+            Quaternion rot = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                rot,
+                rotationSpeed * Time.deltaTime
+            );
         }
-    }
-
-    void SetSpeed(float speed)
-    {
-        if (hasSpeedParam)
-            animator?.SetFloat("Speed", speed);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
-
-        Gizmos.color = Color.blue;
-        Vector3 start = Application.isPlaying ? startPosition : transform.position;
-        Gizmos.DrawLine(
-            start - Vector3.right * patrolDistance,
-            start + Vector3.right * patrolDistance);
     }
 }

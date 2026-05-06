@@ -9,12 +9,14 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private Animator animator;
     private Rigidbody rb;
+    private PlayerCombat combat; // 🔥 ADD
 
     void Awake()
     {
         controls = new PlayerControls();
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+        combat = GetComponent<PlayerCombat>(); // 🔥 ADD
     }
 
     void OnEnable()
@@ -37,8 +39,22 @@ public class PlayerMovement : MonoBehaviour
     {
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
-        // Lock movement during most of attack animation
+        // 🔥 LOCK MOVEMENT DURING ATTACK (EXISTING)
         if (stateInfo.IsName("Attack") && stateInfo.normalizedTime < 0.75f)
+        {
+            rb.linearVelocity = new Vector3(
+                0,
+                rb.linearVelocity.y,
+                0
+            );
+
+            animator.SetFloat("Speed", 0f);
+
+            return;
+        }
+
+        // 🔥 NEW: LOCK MOVEMENT WHILE BLOCKING
+        if (combat != null && combat.IsBlocking)
         {
             rb.linearVelocity = new Vector3(
                 0,
@@ -86,7 +102,6 @@ public class PlayerMovement : MonoBehaviour
         // Animation
         float speedValue = move.magnitude;
 
-        // Prevent tiny float values causing sliding
         if (speedValue < 0.1f)
         {
             speedValue = 0f;
