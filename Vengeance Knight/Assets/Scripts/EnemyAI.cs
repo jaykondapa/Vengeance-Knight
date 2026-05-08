@@ -88,6 +88,7 @@ public class EnemyAI : MonoBehaviour
 
             animator.SetFloat("Speed", 0f);
             animator.SetTrigger("Attack");
+            AudioManager.Instance.PlayEnemyAttackSwing();
 
             Invoke(nameof(EndAttack), 1.0f);
         }
@@ -119,7 +120,7 @@ public class EnemyAI : MonoBehaviour
                 ph.TakeDamage(
                     Mathf.RoundToInt(attackDamage)
                 );
-
+                AudioManager.Instance.PlayEnemyAttackSuccess();
                 Debug.Log("Enemy HIT player");
             }
         }

@@ -147,6 +147,7 @@ public class BossAI : MonoBehaviour
             if (ph != null)
             {
                 ph.TakeDamage(heavyAttackDamage);
+                AudioManager.Instance.PlayBossHeavyAttackSuccess();
                 Debug.Log("Boss HEAVY hit");
             }
         }

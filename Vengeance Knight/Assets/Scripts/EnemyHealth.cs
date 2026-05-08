@@ -40,10 +40,12 @@ public class EnemyHealth : MonoBehaviour
         if (healthBar != null)
         {
             healthBar.value = currentHealth;
+            AudioManager.Instance.PlayEnemyReceiveHit();
         }
 
         if (currentHealth <= 0)
         {
+            AudioManager.Instance.PlayEnemyDeath();
             Die();
         }
     }
