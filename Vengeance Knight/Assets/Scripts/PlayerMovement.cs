@@ -39,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
     {
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
-        // 🔥 LOCK MOVEMENT DURING ATTACK (EXISTING)
+        // LOCK MOVEMENT DURING ATTACK
         if (stateInfo.IsName("Attack") && stateInfo.normalizedTime < 0.75f)
         {
             rb.linearVelocity = new Vector3(
@@ -53,7 +53,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // 🔥 NEW: LOCK MOVEMENT WHILE BLOCKING
+        // LOCK MOVEMENT WHILE BLOCKING
         if (combat != null && combat.IsBlocking)
         {
             rb.linearVelocity = new Vector3(
@@ -87,7 +87,6 @@ public class PlayerMovement : MonoBehaviour
             10f * Time.fixedDeltaTime
         );
 
-        // Better rotation using actual velocity
         Vector3 horizontalVelocity = new Vector3(
             rb.linearVelocity.x,
             0,

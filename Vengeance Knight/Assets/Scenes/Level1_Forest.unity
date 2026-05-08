@@ -712,10 +712,10 @@ MonoBehaviour:
   animator: {fileID: 31375516}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15
@@ -1894,10 +1894,10 @@ MonoBehaviour:
   animator: {fileID: 147865795}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15
@@ -2129,10 +2129,10 @@ MonoBehaviour:
   animator: {fileID: 189317077}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15
@@ -3060,6 +3060,7 @@ GameObject:
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -3202,6 +3203,22 @@ MonoBehaviour:
   heightOffset: 3.5
   blendHeight: 2
   blendSpeed: 6
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 731012abf29345e4fb249d0b1cbfc789, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraObstruction
+  player: {fileID: 543450651655562098}
+  obstructionMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &333090617
 GameObject:
   m_ObjectHideFlags: 0
@@ -3938,10 +3955,10 @@ MonoBehaviour:
   animator: {fileID: 483984326}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15
@@ -4876,10 +4893,10 @@ MonoBehaviour:
   animator: {fileID: 688228417}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15
@@ -8717,7 +8734,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -9327,7 +9344,7 @@ Transform:
   m_GameObject: {fileID: 1461961664}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.86, y: 5, z: 165.22}
+  m_LocalPosition: {x: 11.7, y: 5, z: 165.22}
   m_LocalScale: {x: 16.81391, y: 5, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10530,10 +10547,10 @@ MonoBehaviour:
   animator: {fileID: 1574342282}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15
@@ -11141,10 +11158,10 @@ MonoBehaviour:
   animator: {fileID: 1686086042}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15
@@ -13357,10 +13374,10 @@ MonoBehaviour:
   animator: {fileID: 2062182904}
   canPatrol: 1
   patrolRadius: 5
-  patrolSpeed: 0.5
-  chaseSpeed: 0.75
+  patrolSpeed: 0.7
+  chaseSpeed: 0.4
   rotationSpeed: 10
-  detectionRange: 8
+  detectionRange: 6
   attackRange: 2
   attackCooldown: 2
   attackDamage: 15

@@ -1,28 +1,29 @@
 using UnityEngine;
 
-public class EnemyAI : MonoBehaviour
+public class BossAI : MonoBehaviour
 {
     public Transform player;
     public Animator animator;
 
     [Header("Movement")]
-    public bool canPatrol = true;
-    public float patrolRadius = 5f;
-    public float patrolSpeed = 1.5f;
-    public float chaseSpeed = 4f;
+    public bool canPatrol = false;
+    public float patrolRadius = 0f;
+    public float patrolSpeed = 0f;
+    public float chaseSpeed = 1f;
     public float rotationSpeed = 10f;
 
     [Header("Combat")]
-    public float detectionRange = 6f;
-    public float attackRange = 2f;
+    public float detectionRange = 10f;
+    public float attackRange = 2.5f;
     public float attackCooldown = 1.5f;
-    public float attackDamage = 15f;
 
-    private Vector3 patrolTarget;
-    private Vector3 spawnPosition; // 🔥 NEW (fix patrol drifting)
+    [Header("Damage")]
+    public float normalAttackDamage = 35f;
+    public float heavyAttackDamage = 60f;
 
     private float attackTimer;
     private bool isAttacking = false;
+    private int attackCounter = 0;
 
     private EnemyHealth enemyHealth;
     private Rigidbody rb;
@@ -31,10 +32,6 @@ public class EnemyAI : MonoBehaviour
     {
         enemyHealth = GetComponent<EnemyHealth>();
         rb = GetComponent<Rigidbody>();
-
-        spawnPosition = transform.position; // 🔥 save original spawn point
-
-        SetNewPatrolPoint();
     }
 
     void Update()
@@ -57,57 +54,69 @@ public class EnemyAI : MonoBehaviour
         {
             ChasePlayer();
         }
-        else if (canPatrol)
-        {
-            Patrol();
-        }
         else
         {
             Idle();
         }
     }
 
-    // ATTACK LOGIC
     void HandleAttack()
     {
         LookAtPlayer();
 
         if (rb != null)
         {
-            rb.linearVelocity = new Vector3(
-                0,
-                rb.linearVelocity.y,
-                0
-            );
+            rb.linearVelocity =
+                new Vector3(0, rb.linearVelocity.y, 0);
         }
 
         if (attackTimer <= 0f && !isAttacking)
         {
-            attackTimer = attackCooldown;
             isAttacking = true;
 
             animator.SetFloat("Speed", 0f);
-            animator.SetTrigger("Attack");
 
-            Invoke(nameof(EndAttack), 1.0f);
+            // Every 4th attack = heavy attack
+            if (attackCounter == 3)
+            {
+                attackCounter = 0;
+
+                animator.ResetTrigger("Attack");
+                animator.SetTrigger("HeavyAttack");
+
+                attackTimer = attackCooldown + 2.5f;
+
+                Invoke(nameof(EndAttack), 2.2f);
+            }
+            else
+            {
+                animator.ResetTrigger("HeavyAttack");
+                animator.SetTrigger("Attack");
+
+                attackCounter++;
+
+                attackTimer = attackCooldown;
+
+                Invoke(nameof(EndAttack), 1.0f);
+            }
         }
     }
 
     void EndAttack()
     {
         isAttacking = false;
+
         animator.ResetTrigger("Attack");
+        animator.ResetTrigger("HeavyAttack");
     }
 
-    // CALLED BY ANIMATION EVENT
+    // Normal attack animation event
     public void DealDamage()
     {
         if (player == null) return;
 
-        float dist = Vector3.Distance(
-            transform.position,
-            player.position
-        );
+        float dist =
+            Vector3.Distance(transform.position, player.position);
 
         if (dist <= attackRange)
         {
@@ -116,16 +125,33 @@ public class EnemyAI : MonoBehaviour
 
             if (ph != null)
             {
-                ph.TakeDamage(
-                    Mathf.RoundToInt(attackDamage)
-                );
-
-                Debug.Log("Enemy HIT player");
+                ph.TakeDamage(normalAttackDamage);
+                Debug.Log("Boss normal hit");
             }
         }
     }
 
-    // CHASE
+    // Heavy attack animation event
+    public void DealHeavyDamage()
+    {
+        if (player == null) return;
+
+        float dist =
+            Vector3.Distance(transform.position, player.position);
+
+        if (dist <= attackRange)
+        {
+            PlayerHealth ph =
+                player.GetComponent<PlayerHealth>();
+
+            if (ph != null)
+            {
+                ph.TakeDamage(heavyAttackDamage);
+                Debug.Log("Boss HEAVY hit");
+            }
+        }
+    }
+
     void ChasePlayer()
     {
         if (isAttacking)
@@ -135,69 +161,21 @@ public class EnemyAI : MonoBehaviour
         }
 
         Vector3 dir =
-            (player.position - transform.position)
-            .normalized;
+            (player.position - transform.position).normalized;
 
         Move(dir, chaseSpeed);
 
         animator.SetFloat("Speed", 1f);
     }
 
-    // PATROL
-    void Patrol()
-    {
-        if (isAttacking)
-        {
-            animator.SetFloat("Speed", 0f);
-            return;
-        }
-
-        Vector3 dir =
-            patrolTarget - transform.position;
-
-        dir.y = 0;
-
-        if (dir.magnitude < 1f)
-        {
-            SetNewPatrolPoint();
-            return;
-        }
-
-        Move(dir.normalized, patrolSpeed);
-
-        animator.SetFloat("Speed", 0.4f);
-    }
-
-    // PATROL
-    void SetNewPatrolPoint()
-    {
-        Vector2 random =
-            Random.insideUnitCircle * patrolRadius;
-
-        patrolTarget = new Vector3(
-            spawnPosition.x + random.x,
-            spawnPosition.y,
-            spawnPosition.z + random.y
-        );
-    }
-
-    // IDLE
     void Idle()
     {
-        if (isAttacking)
-        {
-            animator.SetFloat("Speed", 0f);
-            return;
-        }
-
         animator.SetFloat("Speed", 0f);
     }
 
-    // MOVEMENT
     void Move(Vector3 direction, float speed)
     {
-        if (isAttacking)
-            return;
+        if (isAttacking) return;
 
         transform.position +=
             direction * speed * Time.deltaTime;
