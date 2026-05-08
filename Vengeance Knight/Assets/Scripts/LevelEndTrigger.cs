@@ -9,7 +9,13 @@ public class LevelEndTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            SceneManager.LoadScene(nextScene);
+			if (EnemyManager.Instance != null)
+			{
+            	if (EnemyManager.Instance.EnemiesCleared() == true)
+				{
+					SceneManager.LoadScene(nextScene);
+				}
+			}
         }
     }
 }

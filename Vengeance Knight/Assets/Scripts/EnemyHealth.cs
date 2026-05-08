@@ -52,6 +52,11 @@ public class EnemyHealth : MonoBehaviour
     {
         IsDead = true;
 
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.EnemyKilled();
+        }
+
         // Trigger animation
         Animator anim = GetComponent<Animator>();
         if (anim != null)
