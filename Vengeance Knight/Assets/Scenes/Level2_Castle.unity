@@ -7470,6 +7470,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossDeath
   victoryCanvas: {fileID: 23162422}
+  victoryDelay: 2.5
 --- !u!1 &302527790
 GameObject:
   m_ObjectHideFlags: 0

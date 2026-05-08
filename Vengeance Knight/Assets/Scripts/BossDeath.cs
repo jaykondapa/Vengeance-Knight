@@ -3,6 +3,7 @@ using UnityEngine;
 public class BossDeath : MonoBehaviour
 {
     public GameObject victoryCanvas;
+    public float victoryDelay = 3f;
 
     private EnemyHealth enemyHealth;
     private bool shown = false;
@@ -23,12 +24,17 @@ public class BossDeath : MonoBehaviour
         {
             shown = true;
 
-            if (victoryCanvas != null)
-            {
-                victoryCanvas.SetActive(true);
-            }
-
-            Time.timeScale = 0f;
+            Invoke(nameof(ShowVictoryScreen), victoryDelay);
         }
+    }
+
+    void ShowVictoryScreen()
+    {
+        if (victoryCanvas != null)
+        {
+            victoryCanvas.SetActive(true);
+        }
+
+        Time.timeScale = 0f;
     }
 }
