@@ -5079,7 +5079,7 @@ MonoBehaviour:
   parryWindow: 0.3
   blockCooldown: 0.2
   parryCounterDamage: 50
-  attackSound: {fileID: 8300000, guid: c37e5156ffcc4b345ad763ce9d2c4824, type: 3}
+  attackSound: {fileID: 8300000, guid: 13182107f288fdc47a11f9216c8f062b, type: 3}
   blockSound: {fileID: 8300000, guid: 67dd73a8fb8b99e4d8c8d793c86c4324, type: 3}
   parrySound: {fileID: 8300000, guid: 67dd73a8fb8b99e4d8c8d793c86c4324, type: 3}
 --- !u!136 &209315730

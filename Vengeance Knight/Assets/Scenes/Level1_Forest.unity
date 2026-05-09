@@ -6783,7 +6783,7 @@ MonoBehaviour:
   parryWindow: 0.3
   blockCooldown: 0.2
   parryCounterDamage: 50
-  attackSound: {fileID: 8300000, guid: c37e5156ffcc4b345ad763ce9d2c4824, type: 3}
+  attackSound: {fileID: 8300000, guid: 13182107f288fdc47a11f9216c8f062b, type: 3}
   blockSound: {fileID: 8300000, guid: 67dd73a8fb8b99e4d8c8d793c86c4324, type: 3}
   parrySound: {fileID: 8300000, guid: 67dd73a8fb8b99e4d8c8d793c86c4324, type: 3}
 --- !u!1 &1002429484 stripped
@@ -10241,10 +10241,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 481c1369977b4685919ac798365444b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
-  bossHeavyAttackSuccess: {fileID: 8300000, guid: c01bbab8442e45146be860df82582360, type: 3}
+  bossHeavyAttackSuccess: {fileID: 8300000, guid: 879e730a6ca97ae4898f59711107f5eb, type: 3}
   enemyAttackSwing: {fileID: 8300000, guid: 13182107f288fdc47a11f9216c8f062b, type: 3}
   enemyAttackSuccess: {fileID: 8300000, guid: 80151380c0f818243b66a78ef69c9fcd, type: 3}
-  enemyDeath: {fileID: 8300000, guid: 6deb22eb220d9ee4d83473ea8ac06c47, type: 3}
+  enemyDeath: {fileID: 8300000, guid: 71f7ab46a39bb0b4ea5e85da9664f88c, type: 3}
   enemyReceiveHit: {fileID: 8300000, guid: 80151380c0f818243b66a78ef69c9fcd, type: 3}
 --- !u!1001 &1574342277
 PrefabInstance:

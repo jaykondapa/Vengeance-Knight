@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,7 +46,6 @@ public class EnemyHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            AudioManager.Instance.PlayEnemyDeath();
             Die();
         }
     }
@@ -64,6 +64,7 @@ public class EnemyHealth : MonoBehaviour
         if (anim != null)
         {
             anim.SetTrigger("Die");
+            StartCoroutine(DelayedAction(0.8f)); // Plays Death SFX after 0.8 seconds
         }
 
         // Disable AI
@@ -84,5 +85,12 @@ public class EnemyHealth : MonoBehaviour
 
         // Destroy after animation
         Destroy(gameObject, 4f);
+        
+        // Holds SFX for delayed action
+        IEnumerator DelayedAction(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            AudioManager.Instance.PlayEnemyDeath();
+        }
     }
 }
