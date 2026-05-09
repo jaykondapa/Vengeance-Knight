@@ -9227,6 +9227,8 @@ MonoBehaviour:
   enemyAttackSuccess: {fileID: 8300000, guid: 80151380c0f818243b66a78ef69c9fcd, type: 3}
   enemyDeath: {fileID: 8300000, guid: 6deb22eb220d9ee4d83473ea8ac06c47, type: 3}
   enemyReceiveHit: {fileID: 8300000, guid: 80151380c0f818243b66a78ef69c9fcd, type: 3}
+  gameOver: {fileID: 8300000, guid: d88cec3e8167ae045a6b9b5cb02e8a23, type: 3}
+  playerDeath: {fileID: 8300000, guid: 35ce408210dfa9843ba14da86f8efb4e, type: 3}
 --- !u!82 &432336321
 AudioSource:
   m_ObjectHideFlags: 0

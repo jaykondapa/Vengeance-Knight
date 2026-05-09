@@ -11,6 +11,8 @@ public class AudioManager : MonoBehaviour
     public AudioClip enemyAttackSuccess;
     public AudioClip enemyDeath;
     public AudioClip enemyReceiveHit;
+    public AudioClip gameOver;
+    public AudioClip playerDeath;
 
     private void Awake()
     {
@@ -53,5 +55,15 @@ public class AudioManager : MonoBehaviour
     public void PlayEnemyReceiveHit()
     {
         audioSource.PlayOneShot(enemyReceiveHit);
+    }
+
+    public void PlayGameOver()
+    {
+        audioSource.PlayOneShot(gameOver);
+    }
+    
+    public void PlayPlayerDeath()
+    {
+        audioSource.PlayOneShot(playerDeath);
     }
 }

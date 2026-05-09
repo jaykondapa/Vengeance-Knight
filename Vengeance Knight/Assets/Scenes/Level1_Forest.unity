@@ -10246,6 +10246,8 @@ MonoBehaviour:
   enemyAttackSuccess: {fileID: 8300000, guid: 80151380c0f818243b66a78ef69c9fcd, type: 3}
   enemyDeath: {fileID: 8300000, guid: 71f7ab46a39bb0b4ea5e85da9664f88c, type: 3}
   enemyReceiveHit: {fileID: 8300000, guid: 80151380c0f818243b66a78ef69c9fcd, type: 3}
+  gameOver: {fileID: 8300000, guid: d88cec3e8167ae045a6b9b5cb02e8a23, type: 3}
+  playerDeath: {fileID: 8300000, guid: 35ce408210dfa9843ba14da86f8efb4e, type: 3}
 --- !u!1001 &1574342277
 PrefabInstance:
   m_ObjectHideFlags: 0

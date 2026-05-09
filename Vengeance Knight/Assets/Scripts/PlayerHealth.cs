@@ -113,9 +113,11 @@ public class PlayerHealth : MonoBehaviour
         if (currentLives <= 0)
         {
             Invoke(nameof(GameOver), respawnDelay);
+            AudioManager.Instance.PlayGameOver();
         }
         else
         {
+            AudioManager.Instance.PlayPlayerDeath();
             Invoke(nameof(Respawn), respawnDelay);
         }
     }
